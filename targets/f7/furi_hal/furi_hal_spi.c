@@ -78,13 +78,21 @@ void furi_hal_spi_release(const FuriHalSpiBusHandle* handle) {
 }
 
 static void furi_hal_spi_bus_end_txrx(const FuriHalSpiBusHandle* handle, uint32_t timeout) {
-    UNUSED(timeout); // FIXME
-    while(LL_SPI_GetTxFIFOLevel(handle->bus->spi) != LL_SPI_TX_FIFO_EMPTY)
-        ;
-    while(LL_SPI_IsActiveFlag_BSY(handle->bus->spi))
-        ;
-    while(LL_SPI_GetRxFIFOLevel(handle->bus->spi) != LL_SPI_RX_FIFO_EMPTY) {
-        LL_SPI_ReceiveData8(handle->bus->spi);
+    {
+        uint32_t timeout_ticks = timeout;
+        while(LL_SPI_GetTxFIFOLevel(handle->bus->spi) != LL_SPI_TX_FIFO_EMPTY && timeout_ticks--)
+            ;
+    }
+    {
+        uint32_t timeout_ticks = timeout;
+        while(LL_SPI_IsActiveFlag_BSY(handle->bus->spi) && timeout_ticks--)
+            ;
+    }
+    {
+        uint32_t timeout_ticks = timeout;
+        while(LL_SPI_GetRxFIFOLevel(handle->bus->spi) != LL_SPI_RX_FIFO_EMPTY && timeout_ticks--) {
+            LL_SPI_ReceiveData8(handle->bus->spi);
+        }
     }
 }
 

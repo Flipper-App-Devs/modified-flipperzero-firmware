@@ -413,8 +413,10 @@ void furi_hal_flash_program_page(const uint8_t page, const uint8_t* data, uint16
             length_written += DWORD_PROG_BLOCK_SIZE;
 
             if((length_written % FAST_PROG_BLOCK_SIZE) == 0) {
-                /* Wait for block operation to be completed */
+                /* Re-enable interrupts during wait to avoid long critical section */
+                taskEXIT_CRITICAL();
                 furi_check(furi_hal_flash_wait_last_operation(FURI_HAL_FLASH_TIMEOUT));
+                taskENTER_CRITICAL();
             }
         }
         CLEAR_BIT(FLASH->CR, FLASH_CR_FSTPG);

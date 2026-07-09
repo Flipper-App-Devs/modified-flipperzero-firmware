@@ -1,6 +1,7 @@
 #include "thread_i.h"
 #include "thread_list_i.h"
 #include "kernel.h"
+#include "semaphore.h"
 #include "message_queue.h"
 #include "memmgr.h"
 #include "memmgr_heap.h"
@@ -64,6 +65,8 @@ struct FuriThread {
 
     FuriThreadStdout output;
     FuriThreadStdin input;
+
+    FuriSemaphore* join_semaphore;
 
     // Keep all non-alignable byte types in one place,
     // this ensures that the size of this structure is minimal
@@ -175,6 +178,7 @@ static void furi_thread_init_common(FuriThread* thread) {
     }
 
     thread->priority = FuriThreadPriorityNormal;
+    thread->join_semaphore = furi_semaphore_alloc(1, 0);
 
     FuriHalRtcHeapTrackMode mode = furi_hal_rtc_get_heap_track_mode();
     if(mode == FuriHalRtcHeapTrackModeAll) {
@@ -208,6 +212,9 @@ void furi_thread_scrub(void) {
 
         // Deliver thread stopped callback
         furi_thread_set_state(thread_to_scrub, FuriThreadStateStopped);
+        if(thread_to_scrub->join_semaphore) {
+            furi_semaphore_release(thread_to_scrub->join_semaphore);
+        }
     }
 }
 
@@ -268,6 +275,9 @@ void furi_thread_free(FuriThread* thread) {
 
     furi_string_free(thread->output.buffer);
     furi_string_free(thread->input.unread_buffer);
+    if(thread->join_semaphore) {
+        furi_semaphore_free(thread->join_semaphore);
+    }
     free(thread);
 }
 
@@ -418,12 +428,8 @@ bool furi_thread_join(FuriThread* thread) {
     // Cannot join a thread to itself
     furi_check(furi_thread_get_current() != thread);
 
-    // !!! IMPORTANT NOTICE !!!
-    //
-    // If your thread exited, but your app stuck here: some other thread uses
-    // all cpu time, which delays kernel from releasing task handle
-    while(thread->state != FuriThreadStateStopped) {
-        furi_delay_tick(2);
+    if(thread->join_semaphore) {
+        furi_semaphore_acquire(thread->join_semaphore, FuriWaitForever);
     }
 
     return true;

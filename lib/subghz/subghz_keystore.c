@@ -118,7 +118,6 @@ static bool subghz_keystore_read_file(SubGhzKeystore* instance, Stream* stream, 
         if(iv) {
         if(!furi_hal_crypto_enclave_load_key(SUBGHZ_KEYSTORE_FILE_ENCRYPTION_KEY_SLOT, iv)) {
             FURI_LOG_E(TAG, "Unable to load encryption key");
-            free(buffer);
             break;
         }
         }

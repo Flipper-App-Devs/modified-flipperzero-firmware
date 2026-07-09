@@ -70,8 +70,11 @@ static const uint32_t furi_hal_rtc_log_baud_rates[] = {
 
 static void furi_hal_rtc_enter_init_mode(void) {
     LL_RTC_EnableInitMode(RTC);
-    while(LL_RTC_IsActiveFlag_INIT(RTC) != 1)
-        ;
+    {
+        uint32_t timeout = 1000;
+        while(LL_RTC_IsActiveFlag_INIT(RTC) != 1 && timeout--)
+            ;
+    }
 }
 
 static void furi_hal_rtc_exit_init_mode(void) {

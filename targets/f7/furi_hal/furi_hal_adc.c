@@ -228,8 +228,10 @@ void furi_hal_adc_configure_ex(
 
     // Run ADC self calibration
     LL_ADC_StartCalibration(handle->adc, LL_ADC_SINGLE_ENDED);
-    // Poll for ADC effectively calibrated
-    while(LL_ADC_IsCalibrationOnGoing(handle->adc) != 0)
+    const uint32_t adc_calibration_timeout_us = 1000000;
+    FuriHalCortexTimer calibration_timer = furi_hal_cortex_timer_get(adc_calibration_timeout_us);
+    while(LL_ADC_IsCalibrationOnGoing(handle->adc) != 0 &&
+          !furi_hal_cortex_timer_is_expired(calibration_timer))
         ;
     // Delay between ADC end of calibration and ADC enable
     size_t end =
@@ -240,7 +242,10 @@ void furi_hal_adc_configure_ex(
     // Enable ADC
     LL_ADC_ClearFlag_ADRDY(handle->adc);
     LL_ADC_Enable(handle->adc);
-    while(LL_ADC_IsActiveFlag_ADRDY(handle->adc) == 0)
+    const uint32_t adc_adrdy_timeout_us = 100000;
+    FuriHalCortexTimer adrdy_timer = furi_hal_cortex_timer_get(adc_adrdy_timeout_us);
+    while(LL_ADC_IsActiveFlag_ADRDY(handle->adc) == 0 &&
+          !furi_hal_cortex_timer_is_expired(adrdy_timer))
         ;
 }
 
@@ -256,7 +261,10 @@ uint16_t furi_hal_adc_read(FuriHalAdcHandle* handle, FuriHalAdcChannel channel) 
 
     LL_ADC_REG_StartConversion(handle->adc);
 
-    while(LL_ADC_IsActiveFlag_EOC(handle->adc) == 0)
+    const uint32_t adc_eoc_timeout_us = 100000;
+    FuriHalCortexTimer eoc_timer = furi_hal_cortex_timer_get(adc_eoc_timeout_us);
+    while(LL_ADC_IsActiveFlag_EOC(handle->adc) == 0 &&
+          !furi_hal_cortex_timer_is_expired(eoc_timer))
         ;
     uint16_t value = LL_ADC_REG_ReadConversionData12(handle->adc);
 
