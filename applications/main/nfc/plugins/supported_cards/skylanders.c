@@ -15,7 +15,7 @@
 
 static const uint64_t skylanders_key = 0x4b0b20107ccb;
 
-static const char* nfc_resources_header = "Flipper NFC resources";
+static const char* nfc_resources_header = "modified-flipper-zero NFC resources";
 static const uint32_t nfc_resources_file_version = 1;
 
 uint64_t crc64_like(uint64_t result, uint8_t sector) {

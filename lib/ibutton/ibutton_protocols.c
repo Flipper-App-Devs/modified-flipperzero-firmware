@@ -6,7 +6,7 @@
 
 #include "protocols/protocol_group_defs.h"
 
-#define IBUTTON_FILE_TYPE "Flipper iButton key"
+#define IBUTTON_FILE_TYPE "modified-flipper-zero iButton key"
 
 #define IBUTTON_PROTOCOL_KEY_V1 "Key type"
 #define IBUTTON_PROTOCOL_KEY_V2 "Protocol"

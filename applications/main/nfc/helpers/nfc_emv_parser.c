@@ -1,7 +1,7 @@
 #include "nfc_emv_parser.h"
 #include <flipper_format/flipper_format.h>
 
-static const char* nfc_resources_header = "Flipper EMV resources";
+static const char* nfc_resources_header = "modified-flipper-zero EMV resources";
 static const uint32_t nfc_resources_file_version = 1;
 
 static bool nfc_emv_parser_search_data(

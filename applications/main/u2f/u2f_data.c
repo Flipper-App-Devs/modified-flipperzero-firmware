@@ -21,13 +21,13 @@
 #define U2F_CERT_USER_UNENCRYPTED \
     2 // Unencrypted user certificate, will be encrypted after first load
 
-#define U2F_CERT_KEY_FILE_TYPE "Flipper U2F Certificate Key File"
+#define U2F_CERT_KEY_FILE_TYPE "modified-flipper-zero U2F Certificate Key File"
 #define U2F_CERT_KEY_VERSION   1
 
-#define U2F_DEVICE_KEY_FILE_TYPE "Flipper U2F Device Key File"
+#define U2F_DEVICE_KEY_FILE_TYPE "modified-flipper-zero U2F Device Key File"
 #define U2F_DEVICE_KEY_VERSION   1
 
-#define U2F_COUNTER_FILE_TYPE   "Flipper U2F Counter File"
+#define U2F_COUNTER_FILE_TYPE   "modified-flipper-zero U2F Counter File"
 #define U2F_COUNTER_VERSION     2
 #define U2F_COUNTER_VERSION_OLD 1
 

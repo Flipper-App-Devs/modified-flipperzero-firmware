@@ -221,7 +221,7 @@ FS_Error sd_format_card(StorageData* storage) {
         storage->status = StorageStatusNotAccessible;
         if(error != FR_OK) break;
         storage->status = StorageStatusNoFS;
-        error = f_setlabel("Flipper SD");
+        error = f_setlabel("modified-flipper-zero SD");
         if(error != FR_OK) break;
         storage->status = StorageStatusNotMounted;
         error = f_mount(sd_data->fs, sd_data->path, 1);

@@ -57,7 +57,7 @@ static bool
     filetype = furi_string_alloc();
     update_manifest->valid =
         flipper_format_read_header(flipper_file, filetype, &update_manifest->manifest_version) &&
-        furi_string_cmp_str(filetype, "Flipper firmware upgrade configuration") == 0 &&
+        furi_string_cmp_str(filetype, "modified-flipper-zero firmware upgrade configuration") == 0 &&
         flipper_format_read_string(flipper_file, MANIFEST_KEY_INFO, update_manifest->version) &&
         flipper_format_read_uint32(
             flipper_file, MANIFEST_KEY_TARGET, &update_manifest->target, 1) &&

@@ -17,7 +17,7 @@ void storage_settings_scene_unmounted_on_enter(void* context) {
         if(error == FSE_OK) {
             dialog_ex_set_header(dialog_ex, "SD Card Mounted", 64, 3, AlignCenter, AlignTop);
             dialog_ex_set_text(
-                dialog_ex, "Flipper can use\nSD card now.", 3, 22, AlignLeft, AlignTop);
+                dialog_ex, "modified-flipper-zero can use\nSD card now.", 3, 22, AlignLeft, AlignTop);
             notification_message(app->notification, &sequence_blink_green_100);
         } else {
             dialog_ex_set_header(dialog_ex, "Cannot Mount SD Card", 64, 3, AlignCenter, AlignTop);

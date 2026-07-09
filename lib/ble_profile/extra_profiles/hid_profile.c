@@ -419,7 +419,7 @@ static void ble_profile_hid_get_config(GapConfig* config, FuriHalBleProfileParam
     if(hid_profile_params && hid_profile_params->device_name_prefix) {
         clicker_str = hid_profile_params->device_name_prefix;
     }
-    furi_string_replace_str(name, "Flipper", clicker_str);
+    furi_string_replace_str(name, "modified-flipper-zero", clicker_str);
     if(furi_string_size(name) >= sizeof(config->adv_name)) {
         furi_string_left(name, sizeof(config->adv_name) - 1);
     }

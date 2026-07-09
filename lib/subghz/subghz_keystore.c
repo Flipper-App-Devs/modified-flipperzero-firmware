@@ -13,8 +13,8 @@
 
 #define FILE_BUFFER_SIZE 64
 
-#define SUBGHZ_KEYSTORE_FILE_TYPE     "Flipper SubGhz Keystore File"
-#define SUBGHZ_KEYSTORE_FILE_RAW_TYPE "Flipper SubGhz Keystore RAW File"
+#define SUBGHZ_KEYSTORE_FILE_TYPE     "modified-flipper-zero SubGhz Keystore File"
+#define SUBGHZ_KEYSTORE_FILE_RAW_TYPE "modified-flipper-zero SubGhz Keystore RAW File"
 #define SUBGHZ_KEYSTORE_FILE_VERSION  0
 
 #define SUBGHZ_KEYSTORE_FILE_ENCRYPTION_KEY_SLOT 1

@@ -112,7 +112,7 @@ void execute(PipeSide* pipe, FuriString* args, void* context) {
 
         // Check volume
         if(furi_hal_rtc_is_flag_set(FuriHalRtcFlagStealthMode)) {
-            printf("Flipper is in stealth mode. Unmute the device to control buzzer.");
+            printf("modified-flipper-zero is in stealth mode. Unmute the device to control buzzer.");
             break;
         }
         if(fabsf(notification->settings.speaker_volume) < BUZZER_VOLUME_EPSILON) {

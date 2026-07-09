@@ -6,7 +6,7 @@
 #include <flipper_format/flipper_format.h>
 
 #define BAD_USB_SETTINGS_PATH           BAD_USB_APP_BASE_FOLDER "/.badusb.settings"
-#define BAD_USB_SETTINGS_FILE_TYPE      "Flipper BadUSB Settings File"
+#define BAD_USB_SETTINGS_FILE_TYPE      "modified-flipper-zero BadUSB Settings File"
 #define BAD_USB_SETTINGS_VERSION        1
 #define BAD_USB_SETTINGS_DEFAULT_LAYOUT BAD_USB_APP_PATH_LAYOUT_FOLDER "/en-US.kl"
 

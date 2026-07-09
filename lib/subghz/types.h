@@ -17,10 +17,10 @@
 #define SUBGHZ_APP_FILENAME_EXTENSION ".sub"
 
 #define SUBGHZ_KEY_FILE_VERSION 1
-#define SUBGHZ_KEY_FILE_TYPE    "Flipper SubGhz Key File"
+#define SUBGHZ_KEY_FILE_TYPE    "modified-flipper-zero SubGhz Key File"
 
 #define SUBGHZ_RAW_FILE_VERSION 1
-#define SUBGHZ_RAW_FILE_TYPE    "Flipper SubGhz RAW File"
+#define SUBGHZ_RAW_FILE_TYPE    "modified-flipper-zero SubGhz RAW File"
 
 #define SUBGHZ_KEYSTORE_DIR_NAME      EXT_PATH("subghz/assets/keeloq_mfcodes")
 #define SUBGHZ_KEYSTORE_DIR_USER_NAME EXT_PATH("subghz/assets/keeloq_mfcodes_user")

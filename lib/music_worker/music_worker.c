@@ -11,7 +11,7 @@
 
 #define TAG "MusicWorker"
 
-#define MUSIC_PLAYER_FILETYPE "Flipper Music Format"
+#define MUSIC_PLAYER_FILETYPE "modified-flipper-zero Music Format"
 #define MUSIC_PLAYER_VERSION  0
 
 #define SEMITONE_PAUSE 0xFF

@@ -5,7 +5,7 @@
 #include <storage/storage.h>
 #include "../test.h" // IWYU pragma: keep
 
-static const char* test_filetype = "Flipper Format test";
+static const char* test_filetype = "modified-flipper-zero Format test";
 static const uint32_t test_version = 666;
 
 static const char* test_string_key = "String data";

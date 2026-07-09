@@ -31,7 +31,7 @@ static void detect_reader_draw_callback(Canvas* canvas, void* model) {
                 canvas, 64, 64, AlignCenter, AlignBottom, furi_string_get_cstr(m->uid_str));
         }
     } else if(m->state == DetectReaderStateReaderDetected) {
-        snprintf(text, sizeof(text), "Move the Flipper away");
+        snprintf(text, sizeof(text), "Move the modified-flipper-zero away");
         canvas_draw_icon(canvas, 24, 25, &I_Release_arrow_18x15);
     } else if(m->state == DetectReaderStateReaderLost) {
         snprintf(text, sizeof(text), "Touch the reader again");

@@ -3,7 +3,7 @@
 #include <flipper_format/flipper_format.h>
 #include <bit_lib/bit_lib.h>
 
-#define LFRFID_DICT_FILETYPE "Flipper RFID key"
+#define LFRFID_DICT_FILETYPE "modified-flipper-zero RFID key"
 
 bool lfrfid_dict_file_save(ProtocolDict* dict, ProtocolId protocol, const char* filename) {
     furi_check(dict);

@@ -5,7 +5,7 @@
 #define RESOURCE_FILE_PATH (EXT_PATH("lfrfid/assets/iso3166.lfrfid"))
 
 static bool lfrfid_search_data(Storage* storage, uint16_t country_code, FuriString* out_line) {
-    static const char* lfrfid_resources_header = "Flipper LFRFID resources";
+    static const char* lfrfid_resources_header = "modified-flipper-zero LFRFID resources";
     static const uint32_t lfrfid_resources_file_version = 1;
 
     FuriString* key = furi_string_alloc_printf("%04d", country_code);

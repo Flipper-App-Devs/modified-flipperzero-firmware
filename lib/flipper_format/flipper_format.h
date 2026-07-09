@@ -50,7 +50,7 @@
  * uint8_t* array[array_size] = {0x00, 0x01, 0xFF, 0xA3};
  *
  * if(!flipper_format_file_open_new(format, EXT_PATH("flipper_format_test")))
- * break; if(!flipper_format_write_header_cstr(format, "Flipper Test File",
+ * break; if(!flipper_format_write_header_cstr(format, "modified-flipper-zero Test File",
  * version)) break; if(!flipper_format_write_comment_cstr(format,
  * "Just test file")) break; if(!flipper_format_write_string_cstr(format,
  * "String", string_value)) break; if(!flipper_format_write_uint32(format,

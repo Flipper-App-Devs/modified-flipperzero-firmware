@@ -6,7 +6,7 @@
 #include "nfc_common.h"
 #include "protocols/nfc_device_defs.h"
 
-#define NFC_FILE_HEADER    "Flipper NFC device"
+#define NFC_FILE_HEADER    "modified-flipper-zero NFC device"
 #define NFC_DEV_TYPE_ERROR "Protocol type mismatch"
 
 #define NFC_DEVICE_UID_KEY  "UID"

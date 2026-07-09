@@ -281,7 +281,7 @@ void cli_command_vibro(PipeSide* pipe, FuriString* args, void* context) {
         furi_record_close(RECORD_NOTIFICATION);
     } else if(!furi_string_cmp(args, "1")) {
         if(furi_hal_rtc_is_flag_set(FuriHalRtcFlagStealthMode)) {
-            printf("Flipper is in stealth mode. Unmute the device to control vibration.");
+            printf("modified-flipper-zero is in stealth mode. Unmute the device to control vibration.");
             return;
         }
 

@@ -40,7 +40,7 @@ static bool animation_storage_load_single_manifest_info(
         if(!flipper_format_file_open_existing(file, ANIMATION_MANIFEST_FILE)) break;
 
         if(!flipper_format_read_header(file, read_string, &u32value)) break;
-        if(furi_string_cmp_str(read_string, "Flipper Animation Manifest")) break;
+        if(furi_string_cmp_str(read_string, "modified-flipper-zero Animation Manifest")) break;
 
         manifest_info->name = NULL;
 
@@ -96,7 +96,7 @@ void animation_storage_fill_animation_list(StorageAnimationList_t* animation_lis
         if(FSE_OK != storage_sd_status(storage)) break;
         if(!flipper_format_file_open_existing(file, ANIMATION_MANIFEST_FILE)) break;
         if(!flipper_format_read_header(file, read_string, &u32value)) break;
-        if(furi_string_cmp_str(read_string, "Flipper Animation Manifest")) break;
+        if(furi_string_cmp_str(read_string, "modified-flipper-zero Animation Manifest")) break;
         do {
             storage_animation = malloc(sizeof(StorageAnimation));
             storage_animation->external = true;
@@ -448,7 +448,7 @@ static BubbleAnimation* animation_storage_load_animation(const char* name) {
         furi_string_printf(str, ANIMATION_DIR "/%s/" ANIMATION_META_FILE, name);
         if(!flipper_format_file_open_existing(ff, furi_string_get_cstr(str))) break;
         if(!flipper_format_read_header(ff, str, &u32value)) break;
-        if(furi_string_cmp_str(str, "Flipper Animation")) break;
+        if(furi_string_cmp_str(str, "modified-flipper-zero Animation")) break;
 
         if(!flipper_format_read_uint32(ff, "Width", &width, 1)) break;
         if(!flipper_format_read_uint32(ff, "Height", &height, 1)) break;
