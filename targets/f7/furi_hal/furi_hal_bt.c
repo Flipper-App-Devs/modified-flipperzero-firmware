@@ -261,7 +261,8 @@ void furi_hal_bt_start_advertising(void) {
 void furi_hal_bt_stop_advertising(void) {
     if(furi_hal_bt_is_active()) {
         gap_stop_advertising();
-        while(furi_hal_bt_is_active()) {
+        uint32_t timeout = 10000;
+        while(furi_hal_bt_is_active() && --timeout) {
             furi_delay_tick(1);
         }
     }

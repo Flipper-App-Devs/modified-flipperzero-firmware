@@ -196,8 +196,12 @@ static inline void furi_hal_power_deep_sleep(void) {
         return;
     }
 
-    while(LL_HSEM_1StepLock(HSEM, CFG_HW_RCC_SEMID))
-        ;
+    {
+        uint32_t retry = 10000;
+        while(LL_HSEM_1StepLock(HSEM, CFG_HW_RCC_SEMID) && --retry)
+            ;
+        furi_check(retry);
+    }
 
     if(!LL_HSEM_1StepLock(HSEM, CFG_HW_ENTRY_STOP_MODE_SEMID)) {
         if(LL_PWR_IsActiveFlag_C2DS() || LL_PWR_IsActiveFlag_C2SB()) {
@@ -238,8 +242,12 @@ static inline void furi_hal_power_deep_sleep(void) {
     /* Release ENTRY_STOP_MODE semaphore */
     LL_HSEM_ReleaseLock(HSEM, CFG_HW_ENTRY_STOP_MODE_SEMID, 0);
 
-    while(LL_HSEM_1StepLock(HSEM, CFG_HW_RCC_SEMID))
-        ;
+    {
+        uint32_t retry = 10000;
+        while(LL_HSEM_1StepLock(HSEM, CFG_HW_RCC_SEMID) && --retry)
+            ;
+        furi_check(retry);
+    }
 
     if(LL_RCC_GetSysClkSource() == LL_RCC_SYS_CLKSOURCE_STATUS_HSI) {
         furi_hal_clock_switch_hsi2hse();
@@ -297,8 +305,12 @@ void furi_hal_power_shutdown(void) {
 
     furi_hal_bt_reinit();
 
-    while(LL_HSEM_1StepLock(HSEM, CFG_HW_RCC_SEMID))
-        ;
+    {
+        uint32_t retry = 10000;
+        while(LL_HSEM_1StepLock(HSEM, CFG_HW_RCC_SEMID) && --retry)
+            ;
+        furi_check(retry);
+    }
 
     if(!LL_HSEM_1StepLock(HSEM, CFG_HW_ENTRY_STOP_MODE_SEMID)) {
         if(LL_PWR_IsActiveFlag_C2DS() || LL_PWR_IsActiveFlag_C2SB()) {
@@ -332,7 +344,7 @@ void furi_hal_power_off(void) {
     furi_delay_us(50000);
     // Send poweroff to charger
     furi_hal_i2c_acquire(&furi_hal_i2c_handle_power);
-    bq25896_poweroff(&furi_hal_i2c_handle_power);
+    (void)bq25896_poweroff(&furi_hal_i2c_handle_power);
     furi_hal_i2c_release(&furi_hal_i2c_handle_power);
     furi_hal_vibro_on(false);
 }
@@ -343,18 +355,18 @@ FURI_NORETURN void furi_hal_power_reset(void) {
 
 bool furi_hal_power_enable_otg(void) {
     furi_hal_i2c_acquire(&furi_hal_i2c_handle_power);
-    bq25896_set_boost_lim(&furi_hal_i2c_handle_power, BoostLim_2150);
-    bq25896_enable_otg(&furi_hal_i2c_handle_power);
+    (void)bq25896_set_boost_lim(&furi_hal_i2c_handle_power, BoostLim_2150);
+    (void)bq25896_enable_otg(&furi_hal_i2c_handle_power);
     furi_delay_ms(30);
     bool ret = bq25896_is_otg_enabled(&furi_hal_i2c_handle_power);
-    bq25896_set_boost_lim(&furi_hal_i2c_handle_power, BoostLim_1400);
+    (void)bq25896_set_boost_lim(&furi_hal_i2c_handle_power, BoostLim_1400);
     furi_hal_i2c_release(&furi_hal_i2c_handle_power);
     return ret;
 }
 
 void furi_hal_power_disable_otg(void) {
     furi_hal_i2c_acquire(&furi_hal_i2c_handle_power);
-    bq25896_disable_otg(&furi_hal_i2c_handle_power);
+    (void)bq25896_disable_otg(&furi_hal_i2c_handle_power);
     furi_hal_i2c_release(&furi_hal_i2c_handle_power);
 }
 
@@ -375,7 +387,7 @@ float furi_hal_power_get_battery_charge_voltage_limit(void) {
 void furi_hal_power_set_battery_charge_voltage_limit(float voltage) {
     furi_hal_i2c_acquire(&furi_hal_i2c_handle_power);
     // Adding 0.0005 is necessary because 4.016f is 4.015999794000, which gets truncated
-    bq25896_set_vreg_voltage(&furi_hal_i2c_handle_power, (uint16_t)(voltage * 1000.0f + 0.0005f));
+    (void)bq25896_set_vreg_voltage(&furi_hal_i2c_handle_power, (uint16_t)(voltage * 1000.0f + 0.0005f));
     furi_hal_i2c_release(&furi_hal_i2c_handle_power);
 }
 
@@ -389,7 +401,7 @@ bool furi_hal_power_check_otg_fault(void) {
 void furi_hal_power_check_otg_status(void) {
     furi_hal_i2c_acquire(&furi_hal_i2c_handle_power);
     if(bq25896_check_otg_fault(&furi_hal_i2c_handle_power))
-        bq25896_disable_otg(&furi_hal_i2c_handle_power);
+        (void)bq25896_disable_otg(&furi_hal_i2c_handle_power);
     furi_hal_i2c_release(&furi_hal_i2c_handle_power);
 }
 
@@ -490,7 +502,7 @@ void furi_hal_power_suppress_charge_enter(void) {
 
     if(disable_charging) {
         furi_hal_i2c_acquire(&furi_hal_i2c_handle_power);
-        bq25896_disable_charging(&furi_hal_i2c_handle_power);
+        (void)bq25896_disable_charging(&furi_hal_i2c_handle_power);
         furi_hal_i2c_release(&furi_hal_i2c_handle_power);
     }
 }
@@ -503,7 +515,7 @@ void furi_hal_power_suppress_charge_exit(void) {
 
     if(enable_charging) {
         furi_hal_i2c_acquire(&furi_hal_i2c_handle_power);
-        bq25896_enable_charging(&furi_hal_i2c_handle_power);
+        (void)bq25896_enable_charging(&furi_hal_i2c_handle_power);
         furi_hal_i2c_release(&furi_hal_i2c_handle_power);
     }
 }

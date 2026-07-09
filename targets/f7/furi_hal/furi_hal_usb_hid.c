@@ -262,10 +262,10 @@ static usbd_respond hid_ep_config(usbd_device* dev, uint8_t cfg);
 static usbd_respond hid_control(usbd_device* dev, usbd_ctlreq* req, usbd_rqc_callback* callback);
 static usbd_device* usb_dev;
 static FuriSemaphore* hid_semaphore = NULL;
-static bool hid_connected = false;
+static volatile bool hid_connected = false;
 static HidStateCallback callback;
 static void* cb_ctx;
-static uint8_t led_state;
+static volatile uint8_t led_state;
 static bool boot_protocol = false;
 
 bool furi_hal_hid_is_connected(void) {
@@ -482,7 +482,7 @@ static void hid_txrx_ep_callback(usbd_device* dev, uint8_t event, uint8_t ep) {
     if(event == usbd_evt_eptx) {
         furi_semaphore_release(hid_semaphore);
     } else if(boot_protocol == true) {
-        usbd_ep_read(usb_dev, ep, &led_state, sizeof(led_state));
+        usbd_ep_read(usb_dev, ep, (void*)&led_state, sizeof(led_state));
     } else {
         struct HidReportLED leds;
         usbd_ep_read(usb_dev, ep, &leds, sizeof(leds));

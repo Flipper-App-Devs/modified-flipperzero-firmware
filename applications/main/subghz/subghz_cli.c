@@ -765,6 +765,8 @@ void subghz_cli_command_tx_from_file(PipeSide* pipe, FuriString* args, void* con
     } while(false);
 
     flipper_format_free(fff_data_file);
+    flipper_format_free(fff_data_raw);
+    subghz_cli_environment_free(environment);
     furi_record_close(RECORD_STORAGE);
 
     if(check_file) {
@@ -965,8 +967,8 @@ static void subghz_cli_command_chat(PipeSide* pipe, FuriString* args) {
 
         if(subghz_chat_worker_is_running(subghz_chat)) {
             subghz_chat_worker_stop(subghz_chat);
-            subghz_chat_worker_free(subghz_chat);
         }
+        subghz_chat_worker_free(subghz_chat);
         return;
     }
 
@@ -1030,11 +1032,17 @@ static void subghz_cli_command_chat(PipeSide* pipe, FuriString* args) {
                 printf("\r\n");
                 furi_string_push_back(input, '\r');
                 furi_string_push_back(input, '\n');
+                uint32_t chat_retry = 500;
                 while(!subghz_chat_worker_write(
                     subghz_chat,
                     (uint8_t*)furi_string_get_cstr(input),
-                    strlen(furi_string_get_cstr(input)))) {
+                    strlen(furi_string_get_cstr(input))) &&
+                      --chat_retry) {
                     furi_delay_ms(10);
+                }
+                if(chat_retry == 0) {
+                    printf("Chat send timeout\r\n");
+                    break;
                 }
 
                 furi_string_printf(input, "%s", furi_string_get_cstr(name));

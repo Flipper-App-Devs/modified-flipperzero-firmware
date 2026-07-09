@@ -132,7 +132,7 @@ void* hid_ble_init(FuriHalUsbHidConfig* hid_cfg) {
     bt_disconnect(ble_hid->bt);
 
     // Wait 2nd core to update nvm storage
-    furi_delay_ms(200);
+    furi_delay_ms(300);
 
     bt_keys_storage_set_storage_path(ble_hid->bt, APP_DATA_PATH(HID_BT_KEYS_STORAGE_NAME));
 
@@ -154,7 +154,7 @@ void hid_ble_deinit(void* inst) {
     bt_disconnect(ble_hid->bt);
 
     // Wait 2nd core to update nvm storage
-    furi_delay_ms(200);
+    furi_delay_ms(300);
     bt_keys_storage_set_default_path(ble_hid->bt);
 
     furi_check(bt_profile_restore_default(ble_hid->bt));
@@ -266,7 +266,7 @@ void bad_usb_hid_ble_remove_pairing(void) {
     bt_disconnect(bt);
 
     // Wait 2nd core to update nvm storage
-    furi_delay_ms(200);
+    furi_delay_ms(300);
 
     furi_hal_bt_stop_advertising();
 
@@ -274,7 +274,7 @@ void bad_usb_hid_ble_remove_pairing(void) {
     bt_forget_bonded_devices(bt);
 
     // Wait 2nd core to update nvm storage
-    furi_delay_ms(200);
+    furi_delay_ms(300);
     bt_keys_storage_set_default_path(bt);
 
     furi_check(bt_profile_restore_default(bt));

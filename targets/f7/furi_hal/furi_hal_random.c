@@ -1,6 +1,7 @@
 #include <furi_hal_random.h>
 #include <furi_hal_bus.h>
 #include <furi.h>
+#include <furi_hal_cortex.h>
 
 #include <stm32wbxx_ll_rng.h>
 #include <stm32wbxx_ll_rcc.h>
@@ -11,25 +12,23 @@
 #define TAG "FuriHalRandom"
 
 static uint32_t furi_hal_random_read_rng(void) {
+    FuriHalCortexTimer timer = furi_hal_cortex_timer_get(100000);
     while(LL_RNG_IsActiveFlag_CECS(RNG) || LL_RNG_IsActiveFlag_SECS(RNG) ||
           !LL_RNG_IsActiveFlag_DRDY(RNG)) {
-        /* Error handling as described in RM0434, pg. 582-583 */
         if(LL_RNG_IsActiveFlag_CECS(RNG)) {
-            /* Clock error occurred */
             LL_RNG_ClearFlag_CEIS(RNG);
         }
-
         if(LL_RNG_IsActiveFlag_SECS(RNG)) {
-            /* Noise source error occurred */
             LL_RNG_ClearFlag_SEIS(RNG);
-
             for(uint32_t i = 0; i < 12; ++i) {
                 const volatile uint32_t discard = LL_RNG_ReadRandData32(RNG);
                 UNUSED(discard);
             }
         }
+        if(furi_hal_cortex_timer_is_expired(timer)) {
+            furi_crash("RNG timeout");
+        }
     }
-
     return LL_RNG_ReadRandData32(RNG);
 }
 
@@ -39,8 +38,12 @@ void furi_hal_random_init(void) {
 }
 
 uint32_t furi_hal_random_get(void) {
-    while(LL_HSEM_1StepLock(HSEM, CFG_HW_RNG_SEMID))
-        ;
+    {
+        uint32_t retry = 10000;
+        while(LL_HSEM_1StepLock(HSEM, CFG_HW_RNG_SEMID) && --retry)
+            ;
+        furi_check(retry);
+    }
     LL_RNG_Enable(RNG);
 
     const uint32_t random_val = furi_hal_random_read_rng();
@@ -56,8 +59,12 @@ void furi_hal_random_fill_buf(uint8_t* buf, uint32_t len) {
     furi_check(buf);
     furi_check(len);
 
-    while(LL_HSEM_1StepLock(HSEM, CFG_HW_RNG_SEMID))
-        ;
+    {
+        uint32_t retry = 10000;
+        while(LL_HSEM_1StepLock(HSEM, CFG_HW_RNG_SEMID) && --retry)
+            ;
+        furi_check(retry);
+    }
     LL_RNG_Enable(RNG);
 
     for(uint32_t i = 0; i < len; i += 4) {
