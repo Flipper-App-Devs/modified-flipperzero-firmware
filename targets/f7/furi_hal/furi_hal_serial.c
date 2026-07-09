@@ -20,6 +20,8 @@
 #define FURI_HAL_SERIAL_LPUART_DMA_INSTANCE (DMA1)
 #define FURI_HAL_SERIAL_LPUART_DMA_CHANNEL  (LL_DMA_CHANNEL_7)
 
+#define FURI_HAL_SERIAL_POLL_TIMEOUT        100000U
+
 typedef struct {
     uint8_t* buffer_rx_ptr;
     size_t buffer_rx_index_write;
@@ -286,8 +288,12 @@ static void furi_hal_serial_usart_init(FuriHalSerialHandle* handle, uint32_t bau
 
     LL_USART_Enable(USART1);
 
-    while(!LL_USART_IsActiveFlag_TEACK(USART1) || !LL_USART_IsActiveFlag_REACK(USART1))
-        ;
+    {
+        uint32_t timeout = FURI_HAL_SERIAL_POLL_TIMEOUT;
+        while((!LL_USART_IsActiveFlag_TEACK(USART1) || !LL_USART_IsActiveFlag_REACK(USART1)) &&
+              timeout--)
+            ;
+    }
 
     furi_hal_serial_set_br(handle, baud);
     LL_USART_DisableIT_ERROR(USART1);
@@ -487,8 +493,12 @@ static void furi_hal_serial_lpuart_init(FuriHalSerialHandle* handle, uint32_t ba
 
     LL_LPUART_Enable(LPUART1);
 
-    while(!LL_LPUART_IsActiveFlag_TEACK(LPUART1) || !LL_LPUART_IsActiveFlag_REACK(LPUART1))
-        ;
+    {
+        uint32_t timeout = FURI_HAL_SERIAL_POLL_TIMEOUT;
+        while((!LL_LPUART_IsActiveFlag_TEACK(LPUART1) || !LL_LPUART_IsActiveFlag_REACK(LPUART1)) &&
+              timeout--)
+            ;
+    }
 
     furi_hal_serial_set_br(handle, baud);
     LL_LPUART_DisableIT_ERROR(LPUART1);
@@ -581,9 +591,11 @@ void furi_hal_serial_set_br(FuriHalSerialHandle* handle, uint32_t baud) {
     uint32_t prescaler = furi_hal_serial_get_prescaler(handle, baud);
     if(handle->id == FuriHalSerialIdUsart) {
         if(LL_USART_IsEnabled(USART1)) {
-            // Wait for transfer complete flag
-            while(!LL_USART_IsActiveFlag_TC(USART1))
-                ;
+            {
+                uint32_t timeout = FURI_HAL_SERIAL_POLL_TIMEOUT;
+                while(!LL_USART_IsActiveFlag_TC(USART1) && timeout--)
+                    ;
+            }
             LL_USART_Disable(USART1);
             uint32_t uartclk = LL_RCC_GetUSARTClockFreq(LL_RCC_USART1_CLKSOURCE);
             LL_USART_SetPrescaler(USART1, prescaler);
@@ -593,9 +605,11 @@ void furi_hal_serial_set_br(FuriHalSerialHandle* handle, uint32_t baud) {
         }
     } else if(handle->id == FuriHalSerialIdLpuart) {
         if(LL_LPUART_IsEnabled(LPUART1)) {
-            // Wait for transfer complete flag
-            while(!LL_LPUART_IsActiveFlag_TC(LPUART1))
-                ;
+            {
+                uint32_t timeout = FURI_HAL_SERIAL_POLL_TIMEOUT;
+                while(!LL_LPUART_IsActiveFlag_TC(LPUART1) && timeout--)
+                    ;
+            }
             LL_LPUART_Disable(LPUART1);
             uint32_t uartclk = LL_RCC_GetLPUARTClockFreq(LL_RCC_LPUART1_CLKSOURCE);
             LL_LPUART_SetPrescaler(LPUART1, prescaler);
@@ -669,9 +683,11 @@ void furi_hal_serial_configure_framing(
 
     if(handle->id == FuriHalSerialIdUsart) {
         if(LL_USART_IsEnabled(USART1)) {
-            // Wait for transfer complete flag
-            while(!LL_USART_IsActiveFlag_TC(USART1))
-                ;
+            {
+                uint32_t timeout = FURI_HAL_SERIAL_POLL_TIMEOUT;
+                while(!LL_USART_IsActiveFlag_TC(USART1) && timeout--)
+                    ;
+            }
             LL_USART_Disable(USART1);
             furi_hal_serial_usart_configure_framing(data_bits, parity, stop_bits);
             LL_USART_Enable(USART1);
@@ -681,9 +697,11 @@ void furi_hal_serial_configure_framing(
         furi_check(stop_bits == FuriHalSerialStopBits1 || stop_bits == FuriHalSerialStopBits2);
 
         if(LL_LPUART_IsEnabled(LPUART1)) {
-            // Wait for transfer complete flag
-            while(!LL_LPUART_IsActiveFlag_TC(LPUART1))
-                ;
+            {
+                uint32_t timeout = FURI_HAL_SERIAL_POLL_TIMEOUT;
+                while(!LL_LPUART_IsActiveFlag_TC(LPUART1) && timeout--)
+                    ;
+            }
             LL_LPUART_Disable(LPUART1);
             furi_hal_serial_lpuart_configure_framing(data_bits, parity, stop_bits);
             LL_LPUART_Enable(LPUART1);
@@ -749,8 +767,11 @@ void furi_hal_serial_tx(FuriHalSerialHandle* handle, const uint8_t* buffer, size
         if(LL_USART_IsEnabled(USART1) == 0) return;
 
         while(buffer_size > 0) {
-            while(!LL_USART_IsActiveFlag_TXE(USART1))
-                ;
+            {
+                uint32_t timeout = FURI_HAL_SERIAL_POLL_TIMEOUT;
+                while(!LL_USART_IsActiveFlag_TXE(USART1) && timeout--)
+                    ;
+            }
 
             LL_USART_TransmitData8(USART1, *buffer);
             buffer++;
@@ -761,8 +782,11 @@ void furi_hal_serial_tx(FuriHalSerialHandle* handle, const uint8_t* buffer, size
         if(LL_LPUART_IsEnabled(LPUART1) == 0) return;
 
         while(buffer_size > 0) {
-            while(!LL_LPUART_IsActiveFlag_TXE(LPUART1))
-                ;
+            {
+                uint32_t timeout = FURI_HAL_SERIAL_POLL_TIMEOUT;
+                while(!LL_LPUART_IsActiveFlag_TXE(LPUART1) && timeout--)
+                    ;
+            }
 
             LL_LPUART_TransmitData8(LPUART1, *buffer);
 
@@ -777,13 +801,19 @@ void furi_hal_serial_tx_wait_complete(FuriHalSerialHandle* handle) {
     if(handle->id == FuriHalSerialIdUsart) {
         if(LL_USART_IsEnabled(USART1) == 0) return;
 
-        while(!LL_USART_IsActiveFlag_TC(USART1))
-            ;
+        {
+            uint32_t timeout = FURI_HAL_SERIAL_POLL_TIMEOUT;
+            while(!LL_USART_IsActiveFlag_TC(USART1) && timeout--)
+                ;
+        }
     } else if(handle->id == FuriHalSerialIdLpuart) {
         if(LL_LPUART_IsEnabled(LPUART1) == 0) return;
 
-        while(!LL_LPUART_IsActiveFlag_TC(LPUART1))
-            ;
+        {
+            uint32_t timeout = FURI_HAL_SERIAL_POLL_TIMEOUT;
+            while(!LL_LPUART_IsActiveFlag_TC(LPUART1) && timeout--)
+                ;
+        }
     }
 }
 

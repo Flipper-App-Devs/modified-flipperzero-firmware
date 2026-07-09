@@ -116,10 +116,11 @@ static bool subghz_keystore_read_file(SubGhzKeystore* instance, Stream* stream, 
 
     do {
         if(iv) {
-            if(!furi_hal_crypto_enclave_load_key(SUBGHZ_KEYSTORE_FILE_ENCRYPTION_KEY_SLOT, iv)) {
-                FURI_LOG_E(TAG, "Unable to load decryption key");
-                break;
-            }
+        if(!furi_hal_crypto_enclave_load_key(SUBGHZ_KEYSTORE_FILE_ENCRYPTION_KEY_SLOT, iv)) {
+            FURI_LOG_E(TAG, "Unable to load encryption key");
+            free(buffer);
+            break;
+        }
         }
 
         size_t ret = 0;
@@ -544,7 +545,8 @@ bool subghz_keystore_raw_get_data(const char* file_name, size_t offset, uint8_t*
         }
         furi_assert(SUBGHZ_KEYSTORE_FILE_DECRYPTED_LINE_SIZE >= bufer_size / 2);
 
-        uint8_t buffer[bufer_size];
+        uint8_t* buffer = malloc(bufer_size);
+        furi_check(buffer);
         size_t ret = 0;
         bool decrypted = true;
         //skip the end of the previous line "\n"
@@ -554,6 +556,7 @@ bool subghz_keystore_raw_get_data(const char* file_name, size_t offset, uint8_t*
         size -= stream_tell(stream);
         if(size < (offset * 2 + len * 2)) {
             FURI_LOG_E(TAG, "Seek position exceeds file size");
+            free(buffer);
             break;
         }
 
@@ -599,6 +602,7 @@ bool subghz_keystore_raw_get_data(const char* file_name, size_t offset, uint8_t*
 
         } while(0);
         furi_hal_crypto_enclave_unload_key(SUBGHZ_KEYSTORE_FILE_ENCRYPTION_KEY_SLOT);
+        free(buffer);
         if(decrypted) result = true;
     } while(0);
     flipper_format_free(flipper_format);

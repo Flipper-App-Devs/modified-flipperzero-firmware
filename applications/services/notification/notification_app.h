@@ -12,6 +12,7 @@ typedef enum {
     InternalLayerMessage,
     SaveSettingsMessage,
     LoadSettingsMessage,
+    ResumeNotificationMessage,
 } NotificationAppMessageType;
 
 typedef struct {
@@ -19,6 +20,19 @@ typedef struct {
     NotificationAppMessageType type;
     FuriEventFlag* back_event;
 } NotificationAppMessage;
+
+typedef struct {
+    uint32_t index;
+    bool led_active;
+    uint8_t led_values[NOTIFICATION_LED_COUNT];
+    bool reset_notifications;
+    uint8_t reset_mask;
+    float speaker_volume_setting;
+    bool vibro_setting;
+    float display_brightness_setting;
+    bool force_volume;
+    bool force_vibro;
+} NotificationContinuation;
 
 typedef enum {
     LayerInternal = 0,
@@ -50,12 +64,17 @@ struct NotificationApp {
     FuriMessageQueue* queue;
     FuriPubSub* event_record;
     FuriTimer* display_timer;
+    FuriTimer* notification_timer;
 
     NotificationLedLayer display;
     NotificationLedLayer led[NOTIFICATION_LED_COUNT];
     uint8_t display_led_lock;
 
     NotificationSettings settings;
+
+    NotificationContinuation continuation;
+    const NotificationSequence* continuation_sequence;
+    bool continuation_pending;
 };
 
 void notification_message_save_settings(NotificationApp* app);

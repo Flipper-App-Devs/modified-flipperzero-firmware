@@ -1,6 +1,7 @@
 #include <furi_hal_light.h>
 #include <furi.h>
 #include <furi_hal.h>
+#include <string.h>
 #include <storage/storage.h>
 #include <input/input.h>
 #include <gui/gui_i.h>
@@ -188,31 +189,62 @@ static void notification_display_timer(void* ctx) {
     notification_message(app, &sequence_display_backlight_off);
 }
 
+// continuation timer callback
+static void notification_resume_timer_callback(void* ctx) {
+    NotificationApp* app = ctx;
+    NotificationAppMessage msg = {
+        .type = ResumeNotificationMessage,
+        .sequence = NULL,
+        .back_event = NULL,
+    };
+    furi_check(furi_message_queue_put(app->queue, &msg, FuriWaitForever) == FuriStatusOk);
+}
+
 // message processing
 static void notification_process_notification_message(
     NotificationApp* app,
-    NotificationAppMessage* message) {
-    uint32_t notification_message_index = 0;
-    bool force_volume = false;
-    bool force_vibro = false;
+    NotificationAppMessage* message,
+    uint32_t start_index,
+    const NotificationContinuation* saved_state) {
+    uint32_t notification_message_index = start_index;
+    bool force_volume;
+    bool force_vibro;
     const NotificationMessage* notification_message;
     notification_message = (*message->sequence)[notification_message_index];
 
-    bool led_active = false;
-    uint8_t led_values[NOTIFICATION_LED_COUNT] = {0x00, 0x00, 0x00};
-    bool reset_notifications = true;
-    float speaker_volume_setting = app->settings.speaker_volume;
-    bool vibro_setting = app->settings.vibro_on;
-    float display_brightness_setting = app->settings.display_brightness;
+    bool led_active;
+    uint8_t led_values[NOTIFICATION_LED_COUNT];
+    bool reset_notifications;
+    float speaker_volume_setting;
+    bool vibro_setting;
+    float display_brightness_setting;
+    uint8_t reset_mask;
 
-    uint8_t reset_mask = 0;
+    if(saved_state) {
+        led_active = saved_state->led_active;
+        memcpy(led_values, saved_state->led_values, NOTIFICATION_LED_COUNT);
+        reset_notifications = saved_state->reset_notifications;
+        reset_mask = saved_state->reset_mask;
+        speaker_volume_setting = saved_state->speaker_volume_setting;
+        vibro_setting = saved_state->vibro_setting;
+        display_brightness_setting = saved_state->display_brightness_setting;
+        force_volume = saved_state->force_volume;
+        force_vibro = saved_state->force_vibro;
+    } else {
+        led_active = false;
+        memset(led_values, 0x00, NOTIFICATION_LED_COUNT);
+        reset_notifications = true;
+        reset_mask = 0;
+        speaker_volume_setting = app->settings.speaker_volume;
+        vibro_setting = app->settings.vibro_on;
+        display_brightness_setting = app->settings.display_brightness;
+        force_volume = false;
+        force_vibro = false;
+    }
 
     while(notification_message != NULL) {
         switch(notification_message->type) {
         case NotificationMessageTypeLedDisplayBacklight:
-            // if on - switch on and start timer
-            // if off - switch off and stop timer
-            // on timer - switch off
             if(notification_message->data.led.value > 0x00) {
                 notification_apply_notification_led_layer(
                     &app->display,
@@ -248,28 +280,24 @@ static void notification_process_notification_message(
             }
             break;
         case NotificationMessageTypeLedRed:
-            // store and send on delay or after seq
             led_active = true;
             led_values[0] = notification_message->data.led.value;
             app->led[0].value_last[LayerNotification] = led_values[0];
             reset_mask |= reset_red_mask;
             break;
         case NotificationMessageTypeLedGreen:
-            // store and send on delay or after seq
             led_active = true;
             led_values[1] = notification_message->data.led.value;
             app->led[1].value_last[LayerNotification] = led_values[1];
             reset_mask |= reset_green_mask;
             break;
         case NotificationMessageTypeLedBlue:
-            // store and send on delay or after seq
             led_active = true;
             led_values[2] = notification_message->data.led.value;
             app->led[2].value_last[LayerNotification] = led_values[2];
             reset_mask |= reset_blue_mask;
             break;
         case NotificationMessageTypeLedBlinkStart:
-            // store and send on delay or after seq
             led_active = true;
             furi_hal_light_blink_start(
                 notification_message->data.led_blink.color,
@@ -326,8 +354,22 @@ static void notification_process_notification_message(
                 reset_mask |= reset_blue_mask;
             }
 
-            furi_delay_ms(notification_message->data.delay.length);
-            break;
+            app->continuation_sequence = message->sequence;
+            app->continuation_pending = true;
+            app->continuation.index = notification_message_index + 1;
+            app->continuation.led_active = led_active;
+            memcpy(app->continuation.led_values, led_values, NOTIFICATION_LED_COUNT);
+            app->continuation.reset_notifications = reset_notifications;
+            app->continuation.reset_mask = reset_mask;
+            app->continuation.speaker_volume_setting = speaker_volume_setting;
+            app->continuation.vibro_setting = vibro_setting;
+            app->continuation.display_brightness_setting = display_brightness_setting;
+            app->continuation.force_volume = force_volume;
+            app->continuation.force_vibro = force_vibro;
+
+            furi_timer_start(
+                app->notification_timer, notification_message->data.delay.length);
+            return;
         case NotificationMessageTypeDoNotReset:
             reset_notifications = false;
             break;
@@ -360,7 +402,6 @@ static void notification_process_notification_message(
         notification_message = (*message->sequence)[notification_message_index];
     };
 
-    // send and do minimal delay
     if(led_active) {
         bool need_minimal_delay = false;
         if(notification_is_any_led_layer_internal_and_not_empty(app)) {
@@ -381,6 +422,16 @@ static void notification_process_notification_message(
     if(reset_notifications) {
         notification_reset_notification_layer(app, reset_mask, display_brightness_setting);
     }
+}
+
+static void notification_process_notification_message_resume(NotificationApp* app) {
+    if(!app->continuation_pending) return;
+
+    app->continuation_pending = false;
+    NotificationAppMessage msg;
+    msg.sequence = app->continuation_sequence;
+    notification_process_notification_message(
+        app, &msg, app->continuation.index, &app->continuation);
 }
 
 static void
@@ -516,6 +567,9 @@ static NotificationApp* notification_app_alloc(void) {
     NotificationApp* app = malloc(sizeof(NotificationApp));
     app->queue = furi_message_queue_alloc(8, sizeof(NotificationAppMessage));
     app->display_timer = furi_timer_alloc(notification_display_timer, FuriTimerTypeOnce, app);
+    app->notification_timer =
+        furi_timer_alloc(notification_resume_timer_callback, FuriTimerTypeOnce, app);
+    app->continuation_pending = false;
 
     app->settings.speaker_volume = 1.0f;
     app->settings.display_brightness = 1.0f;
@@ -609,7 +663,14 @@ int32_t notification_srv(void* p) {
 
         switch(message.type) {
         case NotificationLayerMessage:
-            notification_process_notification_message(app, &message);
+            if(app->continuation_pending) {
+                furi_timer_stop(app->notification_timer);
+                app->continuation_pending = false;
+            }
+            notification_process_notification_message(app, &message, 0, NULL);
+            break;
+        case ResumeNotificationMessage:
+            notification_process_notification_message_resume(app);
             break;
         case InternalLayerMessage:
             notification_process_internal_message(app, &message);
